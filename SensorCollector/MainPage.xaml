@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:local="clr-namespace:SensorCollector" x:Class="SensorCollector.MainPage" xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core" ios:NavigationPage.PrefersLargeTitles="true" ios:Page.UseSafeArea="true">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto">
+            </RowDefinition>
+            <RowDefinition Height="*">
+            </RowDefinition>
+            <RowDefinition Height="30">
+            </RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="80" />
+            </Grid.ColumnDefinitions>
+            <ActivityIndicator x:Name="busyIndicator" IsVisible="false" HorizontalOptions="Center" Grid.Column="0">
+            </ActivityIndicator>
+            <Label x:Name="lblScan" Text="Scan for devices" Grid.Column="0" FontSize="12" HorizontalOptions="StartAndExpand" Margin="10" VerticalOptions="CenterAndExpand">
+            </Label>
+            <Switch x:Name="toggleFindDevices" IsToggled="false" Grid.Column="1" Toggled="Handle_Toggled" />
+        </Grid>
+        <ListView x:Name="lstDevices" Margin="20,0,30,0" Grid.Row="1" ItemsSource="{Binding DeviceList}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackLayout VerticalOptions="CenterAndExpand">
+                                <Label Text="{Binding Data.Name}" />
+                                <Label Text="{Binding Data.Serial}" FontSize="10" />
+                            </StackLayout>
+                            <Switch IsToggled="{Binding Selected}" Grid.Column="1" />
+                        </Grid>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Label x:Name="lblStatus" Text="Still figuring it out..." Grid.Row="2" FontSize="10" Margin="10" />
+    </Grid>
+</ContentPage>
