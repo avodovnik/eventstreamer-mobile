@@ -9,6 +9,10 @@
             <RowDefinition Height="30">
             </RowDefinition>
         </Grid.RowDefinitions>
+        
+        <Button x:Name="btnFindDevices" Text="Find Movesense devices" Clicked="Handle_Clicked"/>
+        
+        <!--  
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -19,7 +23,7 @@
             <Label x:Name="lblScan" Text="Scan for devices" Grid.Column="0" FontSize="12" HorizontalOptions="StartAndExpand" Margin="10" VerticalOptions="CenterAndExpand">
             </Label>
             <Switch x:Name="toggleFindDevices" IsToggled="false" Grid.Column="1" Toggled="Handle_Toggled" />
-        </Grid>
+        </Grid>-->
         <ListView x:Name="lstDevices" Margin="20,0,30,0" Grid.Row="1" ItemsSource="{Binding DeviceList}">
             <ListView.ItemTemplate>
                 <DataTemplate>

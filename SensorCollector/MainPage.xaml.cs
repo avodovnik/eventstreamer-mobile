@@ -8,106 +8,152 @@ using Xamarin.Forms;
 
 using Plugin.BluetoothLE;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
+using System.Diagnostics;
 
 namespace SensorCollector
 {
     public class MovesenseDevice
     {
         public string Name { get; set; }
-        public string Serial { get; set; }
+        public string Serial { get { return this.Uuid.ToString(); } }
+        public bool IsConnectable { get; set; }
+        public int TxPower { get; private set; }
+        public IDevice Device { get; private set; }
+        public Guid Uuid { get; set; }
+
+        // todo: add bt device holder
+        public void TrySet(IScanResult result)
+        {
+            if (this.Uuid == Guid.Empty)
+            {
+                this.Device = result.Device;
+                this.Uuid = this.Device.Uuid;
+            }
+
+            try
+            {
+                if (this.Uuid == result.Device.Uuid)
+                {
+                    this.Name = result.Device.Name;
+
+                    var ad = result.AdvertisementData;
+                    this.IsConnectable = ad.IsConnectable;
+                    //this.LocalName = ad.LocalName;
+                    this.TxPower = ad.TxPower;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+            }
+        }
     }
+
 
 
     public partial class MainPage : ContentPage
     {
         public ObservableCollection<SelectableItem<MovesenseDevice>> DeviceList { get; set; }
 
+        IDisposable scan;
+        public IAdapter BleAdapter => CrossBleAdapter.Current;
+
+        private void UpdateStatus(string message)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                lblStatus.Text = message;
+            });
+            // todo: make an observable
+        }
+
         public MainPage()
         {
             InitializeComponent();
 
-            //this.listView.ItemsSource = new List<SampleItem>(new SampleItem[] {
-            //    new SampleItem() { Name = "Test 1"},
-            //    new SampleItem() { Name = "Test 2"}
-            //});
-
             DeviceList = new ObservableCollection<SelectableItem<MovesenseDevice>>();
             this.BindingContext = this;
             this.lstDevices.ItemsSource = DeviceList;
+
         }
 
-        IDisposable scan;
-        public IAdapter BleAdapter => CrossBleAdapter.Current;
-
-        private void DoScan()
+        void Handle_Clicked(object sender, System.EventArgs e)
         {
-            lblStatus.Text = "Scanning for devices...";
-            busyIndicator.IsVisible = true;
-            busyIndicator.IsRunning = true;
-
-            this.DeviceList.Clear();
-
-            //this.scan = this
-            //.adapter
-            //.Scan()
-            //.Buffer(TimeSpan.FromSeconds(1))
-            //.ObserveOn(RxApp.MainThreadScheduler)
-            //.Subscribe(
-            //    results =>
-            //    {
-            //        var list = new List<ScanResultViewModel>();
-            //        foreach (var result in results)
-            //        {
-            //            var dev = this.Devices.FirstOrDefault(x => x.Uuid.Equals(result.Device.Uuid));
-
-            //            if (dev != null)
-            //            {
-            //                dev.TrySet(result);
-            //            }
-            //            else
-            //            {
-            //                dev = new ScanResultViewModel();
-            //                dev.TrySet(result);
-            //                list.Add(dev);
-            //            }
-            //        }
-            //        if (list.Any())
-            //            this.Devices.AddRange(list);
-            //    },
-            //    ex => dialogs.Alert(ex.ToString(), "ERROR")
-            //)
-            //.DisposeWith(this.DeactivateWith);
-            
-
-
-            scan = this.BleAdapter.Scan()
-                       .Buffer(TimeSpan.FromSeconds(1))
-                       .Subscribe(OnScanResults);
-        }
-
-        public void StopScanning()
-        {
-            lblStatus.Text = "Doing nothing...";
-            busyIndicator.IsVisible = false;
-            busyIndicator.IsRunning = false;
-            this.scan?.Dispose();
-        }
-
-
-        private void OnScanResults(IList<IScanResult> results)
-        {
-            var items = 
-                results
-                    .Where(x => (x.Device.Name?.StartsWith("Movesense", StringComparison.InvariantCultureIgnoreCase)).GetValueOrDefault(false))
-                .Select(x => new SelectableItem<MovesenseDevice>(new MovesenseDevice() { Name = x.Device.Name, Serial = x.Device.Uuid.ToString() }));
-
             Device.BeginInvokeOnMainThread(() =>
             {
-                this.DeviceList = new ObservableCollection<SelectableItem<MovesenseDevice>>(items);
-                this.lstDevices.ItemsSource = DeviceList;
+                this.DeviceList.Clear();
             });
-           
+
+            if (this.IsScanning)
+            {
+                scan?.Dispose();
+                this.IsScanning = false;
+                this.UpdateStatus("Doing nothing...");
+            }
+            else
+            {
+                if(BleAdapter.Status == AdapterStatus.PoweredOn) {
+                   DoScan();
+                }
+                else {
+                    BleAdapter.WhenStatusChanged().Subscribe(status =>
+                    {
+                        if (status == AdapterStatus.PoweredOn)
+                        {
+                            DoScan();
+                        }
+                    });
+                }
+            }
         }
+
+
+        private void DoScan() {
+            UpdateStatus("Scanning for Movesense devices...");
+            this.IsScanning = true;
+            this.scan = this.BleAdapter
+                .Scan()
+                .Buffer(TimeSpan.FromSeconds(3))
+                .Subscribe(results =>
+                {
+                    // doing this to prevent multiple sensors showing up
+                    lock (this.DeviceList)
+                    {
+                        foreach (var result in results)
+                        {
+                            if (!(result.Device?.Name?.StartsWith("movesense", StringComparison.InvariantCultureIgnoreCase)).GetValueOrDefault(false))
+                            {
+                                // unless it's a Movesense device, just give up
+                                continue;
+                            }
+
+                            var dev = this.DeviceList.FirstOrDefault(x => x.Data.Uuid.Equals(result.Device.Uuid));
+
+                            if (dev != null)
+                            {
+                                dev.Data.TrySet(result);
+                            }
+                            else
+                            {
+                                dev = new SelectableItem<MovesenseDevice>(new MovesenseDevice());
+                                dev.Data.TrySet(result);
+
+                                Device.BeginInvokeOnMainThread(() =>
+                                {
+                                    // for some reason, we need to double check this, again
+                                    if (DeviceList.Any(x => x.Data.Uuid == dev.Data.Uuid)) return;
+
+                                    this.DeviceList.Add(dev);
+                                });
+                            }
+                        }
+                    }
+                });
+        }
+
+        public bool IsScanning { get; private set; }
+
 
         //async void OnScanResult(IScanResult result)
         //{
@@ -171,30 +217,6 @@ namespace SensorCollector
         //    }
         //}
 
-        void Handle_Toggled(object sender, Xamarin.Forms.ToggledEventArgs e)
-        {
-            if (!toggleFindDevices.IsToggled)
-            {
-                StopScanning(); // we need to stop scanning
-            }
-            else
-            {
-                if (BleAdapter.Status == AdapterStatus.PoweredOn)
-                {
-                    DoScan();
-                }
-                else
-                {
-                    BleAdapter.WhenStatusChanged().Subscribe(status =>
-                    {
-                        if (status == AdapterStatus.PoweredOn)
-                        {
-                            DoScan();
-                        }
-                    });
-                }
-            }
-        }
     }
 }
 

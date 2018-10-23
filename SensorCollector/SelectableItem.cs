@@ -1,4 +1,6 @@
 ﻿using System;
+using Plugin.BluetoothLE;
+
 namespace SensorCollector
 {
     public class SelectableItem<T>
