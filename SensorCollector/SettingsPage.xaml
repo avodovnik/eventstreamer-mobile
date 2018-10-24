@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="SensorCollector.SettingsPage">
+    <ContentPage.Content>
+        <StackLayout Margin="0">
+            <TableView Intent="Settings">
+                <TableRoot>
+                    <TableSection Title="Personal Details">
+                        <EntryCell x:Name="entName" Label="Name" Placeholder="Your name"></EntryCell>
+                        <EntryCell x:Name="entAge" Label="Age" Placeholder="30"></EntryCell>
+                        <!--<ViewCell><Picker></Picker></ViewCell>-->
+                    </TableSection>
+                    
+                     <TableSection Title="Connection Details">
+                        <EntryCell x:Name="entConnectionString" Label="Con. String" Placeholder="..."></EntryCell>
+                        <SwitchCell x:Name="entStream" Text="Stream immediately" On="true"></SwitchCell>
+                    </TableSection>
+                </TableRoot>
+            </TableView>
+            <Button Text="Save and Close" Clicked="Handle_Clicked">
+            </Button>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

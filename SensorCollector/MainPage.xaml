@@ -1,34 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:local="clr-namespace:SensorCollector" x:Class="SensorCollector.MainPage" xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core" ios:NavigationPage.PrefersLargeTitles="true" ios:Page.UseSafeArea="true">
+<ContentPage
+    Title="Streaming"
+    xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:local="clr-namespace:SensorCollector" x:Class="SensorCollector.MainPage" xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core" ios:NavigationPage.PrefersLargeTitles="true" ios:Page.UseSafeArea="true">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto">
             </RowDefinition>
             <RowDefinition Height="*">
             </RowDefinition>
-            <RowDefinition Height="30">
-            </RowDefinition>
+<!--            <RowDefinition Height="*"></RowDefinition>-->
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
         
-        <Button x:Name="btnFindDevices" Text="Find Movesense devices" Clicked="Handle_Clicked"/>
-        
-        <!--  
-        <Grid>
+         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="80" />
                 <ColumnDefinition Width="80" />
             </Grid.ColumnDefinitions>
-            <ActivityIndicator x:Name="busyIndicator" IsVisible="false" HorizontalOptions="Center" Grid.Column="0">
-            </ActivityIndicator>
-            <Label x:Name="lblScan" Text="Scan for devices" Grid.Column="0" FontSize="12" HorizontalOptions="StartAndExpand" Margin="10" VerticalOptions="CenterAndExpand">
+            
+            <Button x:Name="btnFindDevices" Text="Find Movesense devices" Clicked="Handle_Clicked"/>
+            <Label x:Name="lblScan" Text="Stream data" HorizontalTextAlignment="End" Grid.Column="1" FontSize="12"
+                   HorizontalOptions="EndAndExpand" Margin="10" VerticalOptions="CenterAndExpand">
             </Label>
-            <Switch x:Name="toggleFindDevices" IsToggled="false" Grid.Column="1" Toggled="Handle_Toggled" />
-        </Grid>-->
-        <ListView x:Name="lstDevices" Margin="20,0,30,0" Grid.Row="1" ItemsSource="{Binding DeviceList}">
+            <Switch x:Name="toggleStream" IsToggled="false" Grid.Column="2" Toggled="Handle_Stream_Toggled"
+                    VerticalOptions="CenterAndExpand"></Switch>
+        </Grid>
+        
+        
+        <ListView x:Name="lstDevices" Margin="0,0,20,0" Grid.Row="1" 
+                  ItemsSource="{Binding DeviceList}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <ViewCell>
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,10" VerticalOptions="CenterAndExpand">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -37,12 +42,22 @@
                                 <Label Text="{Binding Data.Name}" />
                                 <Label Text="{Binding Data.Serial}" FontSize="10" />
                             </StackLayout>
-                            <Switch IsToggled="{Binding Selected}" Grid.Column="1" />
+                            <Switch IsToggled="{Binding Selected, Mode=TwoWay}" 
+                                    VerticalOptions="Center" Grid.Column="1" 
+                                    Toggled="Handle_Toggled" />
                         </Grid>
                     </ViewCell>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Label x:Name="lblStatus" Text="Still figuring it out..." Grid.Row="2" FontSize="10" Margin="10" />
+        
+       
+        <StackLayout Orientation="Horizontal" Margin="20,0,20,0" Grid.Row="2">
+             <Label x:Name="lblStatus" Text="Still figuring it out..." Grid.Column="0"
+                    FontSize="10" VerticalOptions="CenterAndExpand" />
+            <Button x:Name="btnSettings" Text="Settings" Clicked="Handle_Clicked_Settings"
+                    HorizontalOptions="EndAndExpand"/>
+        </StackLayout>
+        
     </Grid>
 </ContentPage>

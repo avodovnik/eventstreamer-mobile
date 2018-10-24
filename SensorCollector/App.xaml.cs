@@ -22,6 +22,9 @@ namespace SensorCollector
         protected override void OnSleep()
         {
             // Handle when your app sleeps
+
+            // disconnect all the devices 
+            (MainPage as MainPage).DisconnectAll();
         }
 
         protected override void OnResume()
