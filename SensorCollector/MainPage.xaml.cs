@@ -165,6 +165,9 @@ namespace SensorCollector
                 UpdateStatus($"Subscribing to {sensor.Name}");
                 try
                 {
+                    //await Plugin.Movesense.CrossMovesense.Current.SetupLoggerAsync(sensor.Name);
+                    //await Plugin.Movesense.CrossMovesense.Current.SetLoggerStatusAsync(sensor.Name, true);
+
                     var subscription = await Plugin.Movesense.CrossMovesense.Current.SubscribeIMU9Async(sensor.Name, (data) =>
                     {
                         var o = new
@@ -174,6 +177,7 @@ namespace SensorCollector
                             Gyr = data.body.ArrayGyro
                         };
 
+                        // data recieved
                         Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(o));
 
                         //data.body.ArrayAcc[0].
@@ -285,7 +289,9 @@ namespace SensorCollector
                     await sensor.Disconnect();
                     UpdateStatus("Disconnected.");
                 }
-            } catch(Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 ShowError(ex);
             }
         }
