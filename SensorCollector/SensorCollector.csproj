@@ -7,10 +7,23 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="3.1.0.697729" />
+    <PackageReference Include="Xamarin.Forms" Version="3.3.0.967583" />
     <PackageReference Include="Plugin.Movesense" Version="1.1.0-beta" />
     <PackageReference Include="Plugin.BluetoothLE" Version="6.2.2" />
     <PackageReference Include="Xamarin.Essentials" Version="0.11.0-preview" />
-    <PackageReference Include="WindowsAzure.ServiceBus" Version="5.0.0" />
+    <PackageReference Include="Confluent.Kafka" Version="0.11.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="cacert.pem" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="cacert.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="cacert.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

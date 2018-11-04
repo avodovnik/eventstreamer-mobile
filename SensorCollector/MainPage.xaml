@@ -27,13 +27,17 @@
                     VerticalOptions="CenterAndExpand"></Switch>
         </Grid>
         
+        <StackLayout Grid.Row="1">
+            <Label x:Name="lblStats" 
+                   Text="Event Count: 0, Throughput: 0 e/s" Margin="17,0,0,0"
+                   FontSize="Small"></Label>
         
-        <ListView x:Name="lstDevices" Margin="0,0,20,0" Grid.Row="1" 
+        <ListView x:Name="lstDevices" Margin="0,0,20,0" 
                   ItemsSource="{Binding DeviceList}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <ViewCell>
-                        <Grid Margin="0,0,0,10" VerticalOptions="CenterAndExpand">
+                        <Grid Margin="10,0,0,10" VerticalOptions="CenterAndExpand">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -50,6 +54,8 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+            </StackLayout>
+        
         
        
         <StackLayout Orientation="Horizontal" Margin="20,0,20,0" Grid.Row="2">

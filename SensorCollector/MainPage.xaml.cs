@@ -12,12 +12,51 @@ using System.Windows.Input;
 using System.Diagnostics;
 using System.Threading;
 using Plugin.Movesense;
+using Confluent.Kafka;
+using Confluent.Kafka.Serialization;
 
+// https://notetoself.tech/2018/06/03/acessing-event-hubs-with-confluent-kafka-library/
 namespace SensorCollector
 {
     public partial class MainPage : ContentPage
     {
         public ObservableCollection<SelectableItem<MovesenseDevice>> DeviceList { get; set; }
+
+        public Confluent.Kafka.Producer<Confluent.Kafka.Null, string> _producer;
+
+        private Confluent.Kafka.Producer<Confluent.Kafka.Null, string> ProducerClient
+        {
+            get
+            {
+                if (_producer == null)
+                {
+                    if (string.IsNullOrEmpty(UserPreferences.Namespace))
+                    {
+                        DisplayAlert("Missing connection string",
+                                     "The connection string for the event hub is missing. Please enter it into Setting.",
+                                     "Close");
+
+                        return null;
+                    }
+
+                    var conf = new Dictionary<string, object>
+                    {
+                        { "bootstrap.servers", $"{UserPreferences.Namespace}.servicebus.windows.net:9093" },
+                        { "security.protocol", "SASL_SSL" },
+                        { "sasl.mechanism", "PLAIN"},
+                        { "group.id", "$Default"},
+                        //{ "debug", "generic,broker,topic,metadata,feature,queue,protocol,msg,security,all" },
+                        { "sasl.username", "$ConnectionString" },
+                        { "sasl.password", $"Endpoint=sb://{UserPreferences.Namespace}.servicebus.windows.net/;SharedAccessKeyName={UserPreferences.KeyName};SharedAccessKey={UserPreferences.KeyValue}" },
+                        { "ssl.ca.location", "cacert.pem" },
+                    };
+
+                    _producer = new Confluent.Kafka.Producer<Confluent.Kafka.Null, string>(conf, null, new StringSerializer(Encoding.UTF8));
+                }
+
+                return _producer;
+            }
+        }
 
         IDisposable scan;
         public IAdapter BleAdapter => CrossBleAdapter.Current;
@@ -137,14 +176,44 @@ namespace SensorCollector
         }
 
         public bool IsScanning { get; private set; }
+        private Thread _measureThread = null;
+
+        private long _eventCount = 0;
+        private Stopwatch _stopwatch = null;
+
+        private ManualResetEvent _measureMre = new ManualResetEvent(false);
 
         private List<IMdsSubscription> _subscriptions = new List<IMdsSubscription>();
 
+        private void DisplayStatistics()
+        {
+            do
+            {
+                var rate = _eventCount / Math.Max(_stopwatch.ElapsedMilliseconds, 1);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    lblStats.Text = $"Event Count: {_eventCount}, Throughput: {rate} e/ms";
+                });
+            } while (!_measureMre.WaitOne(TimeSpan.FromMilliseconds(500)));
+        }
+
         private async Task StartStreaming()
         {
+            _eventCount = 0;
+            _stopwatch = new Stopwatch();
+
+            _measureThread = new Thread(DisplayStatistics);
+            _measureThread.Start();
+
             // start streaming
             // find all selected devices
             var items = this.DeviceList.Where(x => x.Selected).Select(x => x.Data);
+
+            if (ProducerClient == null)
+            {
+                UpdateStatus("Aborting streaming.");
+                return;
+            }
 
             foreach (var sensor in items)
             {
@@ -168,7 +237,7 @@ namespace SensorCollector
                     //await Plugin.Movesense.CrossMovesense.Current.SetupLoggerAsync(sensor.Name);
                     //await Plugin.Movesense.CrossMovesense.Current.SetLoggerStatusAsync(sensor.Name, true);
 
-                    var subscription = await Plugin.Movesense.CrossMovesense.Current.SubscribeIMU9Async(sensor.Name, (data) =>
+                    var subscription = await Plugin.Movesense.CrossMovesense.Current.SubscribeIMU9Async(sensor.Name, async (data) =>
                     {
                         var o = new
                         {
@@ -177,11 +246,10 @@ namespace SensorCollector
                             Gyr = data.body.ArrayGyro
                         };
 
-                        // data recieved
-                        Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(o));
-
-                        //data.body.ArrayAcc[0].
-                        //Debug.WriteLine($"{sensor.Name} received data {data.body.ArrayMagn.Count()}");
+                        await _producer.ProduceAsync(UserPreferences.EventHubName, null, Newtonsoft.Json.JsonConvert.SerializeObject(o));
+                        //var ed = new EventData(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o)));
+                        //await EventHubClient.SendAsync(ed);
+                        _eventCount++;
                     });
 
                     lock (_subscriptions)
@@ -204,6 +272,8 @@ namespace SensorCollector
 
         async Task StopStreaming()
         {
+            _measureMre.Set();
+
             foreach (var sub in _subscriptions)
             {
                 try

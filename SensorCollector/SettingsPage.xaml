@@ -11,7 +11,10 @@
                     </TableSection>
                     
                      <TableSection Title="Connection Details">
-                        <EntryCell x:Name="entConnectionString" Label="Con. String" Placeholder="..."></EntryCell>
+                        <EntryCell x:Name="entNamespace" Label="Namespace" Placeholder="sensor namespace"></EntryCell>
+                        <EntryCell x:Name="entKeyName" Label="SAS Key Name" Placeholder="app"></EntryCell>
+                        <EntryCell x:Name="entKeyValue" Label="SAS Key" Placeholder=""></EntryCell>
+                        <EntryCell x:Name="entEventHubName" Label="Topic" Placeholder="event hub name"></EntryCell>
                         <SwitchCell x:Name="entStream" Text="Stream immediately" On="true"></SwitchCell>
                     </TableSection>
                 </TableRoot>
