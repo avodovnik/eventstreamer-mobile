@@ -12,7 +12,8 @@ using System.Windows.Input;
 using System.Diagnostics;
 using System.Threading;
 using Plugin.Movesense;
-using Confluent.Kafka;
+using Microsoft.Azure.EventHubs;
+//using Confluent.Kafka;
 
 // https://notetoself.tech/2018/06/03/acessing-event-hubs-with-confluent-kafka-library/
 namespace SensorCollector
@@ -21,40 +22,40 @@ namespace SensorCollector
     {
         public ObservableCollection<SelectableItem<MovesenseDevice>> DeviceList { get; set; }
 
-        public Confluent.Kafka.Producer<Confluent.Kafka.Null, string> _producer;
+        //public Confluent.Kafka.Producer<Confluent.Kafka.Null, string> _producer;
 
-        private Confluent.Kafka.Producer<Confluent.Kafka.Null, string> ProducerClient
-        {
-            get
-            {
-                if (_producer == null)
-                {
-                    if (string.IsNullOrEmpty(UserPreferences.Namespace))
-                    {
-                        DisplayAlert("Missing connection string",
-                                     "The connection string for the event hub is missing. Please enter it into Setting.",
-                                     "Close");
+        //private Confluent.Kafka.Producer<Confluent.Kafka.Null, string> ProducerClient
+        //{
+        //    get
+        //    {
+        //        if (_producer == null)
+        //        {
+        //            if (string.IsNullOrEmpty(UserPreferences.Namespace))
+        //            {
+        //                DisplayAlert("Missing connection string",
+        //                             "The connection string for the event hub is missing. Please enter it into Setting.",
+        //                             "Close");
 
-                        return null;
-                    }
+        //                return null;
+        //            }
 
-                    var pConf = new ProducerConfig()
-                    {
-                        BootstrapServers = $"{UserPreferences.Namespace}.servicebus.windows.net:9093",
-                        SecurityProtocol = SecurityProtocolType.Sasl_Ssl,
-                        SaslMechanism = SaslMechanismType.Plain,
-                        GroupId = "$Default",
-                        SaslUsername = "$ConnectionString",
-                        SaslPassword = $"Endpoint=sb://{UserPreferences.Namespace}.servicebus.windows.net/;SharedAccessKeyName={UserPreferences.KeyName};SharedAccessKey={UserPreferences.KeyValue}",
-                        SslCaLocation = "cacert.pem"
-                    };
+        //            var pConf = new ProducerConfig()
+        //            {
+        //                BootstrapServers = $"{UserPreferences.Namespace}.servicebus.windows.net:9093",
+        //                SecurityProtocol = SecurityProtocolType.Sasl_Ssl,
+        //                SaslMechanism = SaslMechanismType.Plain,
+        //                GroupId = "$Default",
+        //                SaslUsername = "$ConnectionString",
+        //                SaslPassword = $"Endpoint=sb://{UserPreferences.Namespace}.servicebus.windows.net/;SharedAccessKeyName={UserPreferences.KeyName};SharedAccessKey={UserPreferences.KeyValue}",
+        //                SslCaLocation = "cacert.pem"
+        //            };
 
-                    _producer = new Confluent.Kafka.Producer<Confluent.Kafka.Null, string>(pConf);
-                }
+        //            _producer = new Confluent.Kafka.Producer<Confluent.Kafka.Null, string>(pConf);
+        //        }
 
-                return _producer;
-            }
-        }
+        //        return _producer;
+        //    }
+        //}
 
         IDisposable scan;
         public IAdapter BleAdapter => CrossBleAdapter.Current;
@@ -207,11 +208,11 @@ namespace SensorCollector
             // find all selected devices
             var items = this.DeviceList.Where(x => x.Selected).Select(x => x.Data);
 
-            if (ProducerClient == null)
-            {
-                UpdateStatus("Aborting streaming.");
-                return;
-            }
+            //if (ProducerClient == null)
+            //{
+            //    UpdateStatus("Aborting streaming.");
+            //    return;
+            //}
 
             foreach (var sensor in items)
             {
@@ -245,12 +246,14 @@ namespace SensorCollector
                         };
 
 
-                        await _producer.ProduceAsync(UserPreferences.EventHubName,
-                                                     new Message<Null, string>()
-                                                     {
-                                                         Key = null,
-                                                         Value = Newtonsoft.Json.JsonConvert.SerializeObject(o)
-                                                     });
+                        //await _producer.ProduceAsync(UserPreferences.EventHubName,
+                        //new Message<Null, string>()
+                        //{
+                        //    Key = null,
+                        //    Value = Newtonsoft.Json.JsonConvert.SerializeObject(o)
+                        //});
+
+                        EventHubClient eventHubClient = EventHubClient.CreateFromConnectionString("test");
 
                         //var ed = new EventData(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o)));
                         //await EventHubClient.SendAsync(ed);

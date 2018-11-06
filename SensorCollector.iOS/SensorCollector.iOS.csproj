@@ -156,6 +156,9 @@
     <PackageReference Include="MovesenseBindingiOS">
       <Version>1.0.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Azure.EventHubs">
+      <Version>2.2.1</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
