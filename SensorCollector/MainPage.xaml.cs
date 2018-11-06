@@ -13,7 +13,6 @@ using System.Diagnostics;
 using System.Threading;
 using Plugin.Movesense;
 using Confluent.Kafka;
-using Confluent.Kafka.Serialization;
 
 // https://notetoself.tech/2018/06/03/acessing-event-hubs-with-confluent-kafka-library/
 namespace SensorCollector
@@ -39,19 +38,18 @@ namespace SensorCollector
                         return null;
                     }
 
-                    var conf = new Dictionary<string, object>
+                    var pConf = new ProducerConfig()
                     {
-                        { "bootstrap.servers", $"{UserPreferences.Namespace}.servicebus.windows.net:9093" },
-                        { "security.protocol", "SASL_SSL" },
-                        { "sasl.mechanism", "PLAIN"},
-                        { "group.id", "$Default"},
-                        //{ "debug", "generic,broker,topic,metadata,feature,queue,protocol,msg,security,all" },
-                        { "sasl.username", "$ConnectionString" },
-                        { "sasl.password", $"Endpoint=sb://{UserPreferences.Namespace}.servicebus.windows.net/;SharedAccessKeyName={UserPreferences.KeyName};SharedAccessKey={UserPreferences.KeyValue}" },
-                        { "ssl.ca.location", "cacert.pem" },
+                        BootstrapServers = $"{UserPreferences.Namespace}.servicebus.windows.net:9093",
+                        SecurityProtocol = SecurityProtocolType.Sasl_Ssl,
+                        SaslMechanism = SaslMechanismType.Plain,
+                        GroupId = "$Default",
+                        SaslUsername = "$ConnectionString",
+                        SaslPassword = $"Endpoint=sb://{UserPreferences.Namespace}.servicebus.windows.net/;SharedAccessKeyName={UserPreferences.KeyName};SharedAccessKey={UserPreferences.KeyValue}",
+                        SslCaLocation = "cacert.pem"
                     };
 
-                    _producer = new Confluent.Kafka.Producer<Confluent.Kafka.Null, string>(conf, null, new StringSerializer(Encoding.UTF8));
+                    _producer = new Confluent.Kafka.Producer<Confluent.Kafka.Null, string>(pConf);
                 }
 
                 return _producer;
@@ -246,7 +244,14 @@ namespace SensorCollector
                             Gyr = data.body.ArrayGyro
                         };
 
-                        await _producer.ProduceAsync(UserPreferences.EventHubName, null, Newtonsoft.Json.JsonConvert.SerializeObject(o));
+
+                        await _producer.ProduceAsync(UserPreferences.EventHubName,
+                                                     new Message<Null, string>()
+                                                     {
+                                                         Key = null,
+                                                         Value = Newtonsoft.Json.JsonConvert.SerializeObject(o)
+                                                     });
+
                         //var ed = new EventData(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o)));
                         //await EventHubClient.SendAsync(ed);
                         _eventCount++;
