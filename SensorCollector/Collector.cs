@@ -121,5 +121,10 @@ namespace SensorCollector
                 _buffer.Add(v);
             }
         }
+
+        internal void Stop()
+        {
+            _isSending = false;
+        }
     }
 }

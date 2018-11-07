@@ -230,7 +230,7 @@ namespace SensorCollector
                                                         data.body.ArrayGyro,
                                                         data.body.ArrayMagn);
 
-                        Collector.PushEvent(Newtonsoft.Json.JsonConvert.SerializeObject(o));
+                        Collector.PushEvent(Newtonsoft.Json.JsonConvert.SerializeObject(sensorData));
                         _eventCount++;
                     });
 
@@ -256,6 +256,7 @@ namespace SensorCollector
         async Task StopStreaming()
         {
             _measureMre.Set();
+            Collector.Stop();
 
             foreach (var sub in _subscriptions)
             {
