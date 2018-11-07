@@ -27,9 +27,6 @@ namespace SensorCollector.Droid
 		public static void UpdateIdValues()
 		{
 			global::Microsoft.Azure.Amqp.Resource.String.ApplicationName = global::SensorCollector.Droid.Resource.String.ApplicationName;
-			global::Microsoft.IdentityModel.Clients.ActiveDirectory.Resource.Id.agentWebView = global::SensorCollector.Droid.Resource.Id.agentWebView;
-			global::Microsoft.IdentityModel.Clients.ActiveDirectory.Resource.Layout.WebAuthenticationBroker = global::SensorCollector.Droid.Resource.Layout.WebAuthenticationBroker;
-			global::Microsoft.IdentityModel.Clients.ActiveDirectory.Resource.String.ApplicationName = global::SensorCollector.Droid.Resource.String.ApplicationName;
 			global::Xamarin.Forms.Platform.Android.Resource.Attribute.actionBarSize = global::SensorCollector.Droid.Resource.Attribute.actionBarSize;
 		}
 		

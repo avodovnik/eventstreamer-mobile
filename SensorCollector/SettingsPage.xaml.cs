@@ -34,7 +34,7 @@ namespace SensorCollector
             UserPreferences.Name = this.entName.Text;
             UserPreferences.Age = this.entAge.Text;
             //UserPreferences.ConnectionString = this.entConnectionString.Text;
-            UserPreferences.KeyName = this.entKeyValue.Text;
+            UserPreferences.KeyName = this.entKeyName.Text;
             UserPreferences.KeyValue = this.entKeyValue.Text;
             UserPreferences.Namespace = this.entNamespace.Text;
             UserPreferences.StreamImmediatelly = this.entStream.On;
